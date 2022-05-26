@@ -1,6 +1,6 @@
 -- Based on Malik's and Blue's animal shelters and vorp animal shelter --
 
-local keys = { ['G'] = 0x760A9C6F, ["B"] = 0x4CC0E2FE, ['S'] = 0xD27782E3, ['W'] = 0x8FD015D8, ['H'] = 0x24978A28, ['G'] = 0x5415BE48, ["ENTER"] = 0xC7B5340A, ['E'] = 0xDFF812F9, ["J"] = 0xF3830D8E }
+local keys = Config.Keys
 
 local pressTime = 0
 local pressLeft = 0
@@ -143,7 +143,7 @@ Citizen.CreateThread(function()
 			-- Shop control and menu open
 			if IsZone then
 				DisplayHelp(Config.Texts.Shoptext, 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
-				if IsControlJustPressed(0, keys['E']) then
+				if IsControlJustPressed(0, keys[Config.TriggerKeys.OpenShop]) then
 					WarMenu.SetTitle('id_dog', shop.Name)
 					WarMenu.OpenMenu('id_dog')
 					CurrentZoneActive = index
@@ -151,7 +151,7 @@ Citizen.CreateThread(function()
 			end
 		end
 
-		if IsControlJustReleased(0, keys['G']) then
+		if IsControlJustReleased(0, keys[Config.TriggerKeys.CallPet]) then
 			pressLeft = GetGameTimer()
 			pressTime = pressTime + 1
 		end
