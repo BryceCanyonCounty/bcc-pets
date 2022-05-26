@@ -16,16 +16,17 @@ Config.Texts = {
     NewPet = 'You bought a new pet'
 }
 
-
-Config.Coords = {
-	vector3(-273.51,689.26,112.45)
-}
-Config.Spawndog = {
-    vector4( -284.09, 685.34, 113.59, 234.45 )
-}
-
-Config.Blips = {
-    { name = 'Adoptions', sprite = -1646261997,x = -273.51, y = 689.26, z = 113.41 }
+Config.Shops = {
+    {
+        Name = 'Shelter',
+        Ring = false,
+        ActiveDistance = 5.0,
+        Coords = {
+            vector3(-273.51,689.26,112.45)
+        },
+        Spawndog = vector4( -284.09, 685.34, 113.59, 234.45 ),
+        Blip = { sprite = -1646261997, x = -273.51, y = 689.26, z = 113.41 }
+    }
 }
 
 Config.PetAttributes = {
@@ -55,7 +56,7 @@ Config.Pets = {
             Level = 1
         }
     },
-    --[[ {
+    {
         Text = "$50 - Mutt",
         SubText = "",
         Desc = "Best pet you'll ever have",
@@ -64,7 +65,7 @@ Config.Pets = {
             Model = "A_C_DogCatahoulaCur_01",
             Level = 1
         }
-        }, ]]
+    },
     {
         Text = "$100 - Labrador Retriever",
         SubText = "",
@@ -173,6 +174,16 @@ Config.Pets = {
         Param = {
             Price = 400,
             Model = "cs_germanson",
+            Level = 1
+        }
+    },
+    {
+        Text = "$400 - Adopt a Teen Child (boy)",
+        SubText = "",
+        Desc = "Poor child",
+        Param = {
+            Price = 400,
+            Model = "cs_mixedracekid",
             Level = 1
         }
     },

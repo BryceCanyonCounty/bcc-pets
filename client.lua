@@ -2,8 +2,6 @@
 
 local keys = { ['G'] = 0x760A9C6F, ["B"] = 0x4CC0E2FE, ['S'] = 0xD27782E3, ['W'] = 0x8FD015D8, ['H'] = 0x24978A28, ['G'] = 0x5415BE48, ["ENTER"] = 0xC7B5340A, ['E'] = 0xDFF812F9, ["J"] = 0xF3830D8E }
 
-local blips = Config.Blips
-
 local pressTime = 0
 local pressLeft = 0
 
@@ -16,11 +14,12 @@ local CurrentZoneActive = 0
 local dogs = Config.Pets
 
 Citizen.CreateThread(function()
-	for _, info in pairs(blips) do
-        local blip = N_0x554d9d53f696d002(1664425300, info.x, info.y, info.z)
-        SetBlipSprite(blip, info.sprite, 1)
+	for _, info in pairs(Config.Shops) do
+		local binfo = info.Blip
+        local blip = N_0x554d9d53f696d002(1664425300, binfo.x, binfo.y, binfo.z)
+        SetBlipSprite(blip, binfo.sprite, 1)
 		SetBlipScale(blip, 0.2)
-		Citizen.InvokeNative(0x9CB1A1623062F402, blip, info.name)
+		Citizen.InvokeNative(0x9CB1A1623062F402, blip, info.Name)
     end  
 end)
 
@@ -47,14 +46,16 @@ local function SetPetAttributes( entity )
     Citizen.InvokeNative( 0xF6A7C08DF2E28B28, entity, 2, 5000.0, false )
 end
 
-local function IsNearZone ( location )
+local function IsNearZone ( location, distance, ring )
 
 	local player = PlayerPedId()
 	local playerloc = GetEntityCoords(player, 0)
 
 	for i = 1, #location do
-		if #(playerloc - location[i]) < 10.0 then
-			Citizen.InvokeNative(0x2A32FAA57B937173, 0x6903B113, location[i].x, location[i].y, location[i].z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 2.0, 2.0, 1.0, 100, 1, 1, 190, false, true, 2, false, false, false, false)
+		if #(playerloc - location[i]) < distance then
+			if ring == true then
+				Citizen.InvokeNative(0x2A32FAA57B937173, 0x6903B113, location[i].x, location[i].y, location[i].z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 2.0, 2.0, 1.0, 100, 1, 1, 190, false, true, 2, false, false, false, false)
+			end
 			return true, i
 		end
 	end
@@ -83,7 +84,7 @@ end
 local function ShowNotification( _message )
 	local timer = 200
 	while timer > 0 do
-		DisplayHelp(_message, 0.50, 0.90, 0.6, 0.6, true, 161, 3, 0, 255, true, 10000)
+		DisplayHelp(_message, 0.50, 0.90, 0.6, 0.6, true, 161, 3, 0, 255, true)
 		timer = timer - 1
 		Citizen.Wait(0)
 	end
@@ -111,15 +112,16 @@ end)
 
 Citizen.CreateThread(function()
 	while true do
-
-		local IsZone, IdZone = IsNearZone( Config.Coords )
-		-- Shop control and menu open
-		if IsZone then
-			DisplayHelp(Config.Texts.Shoptext, 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true, 10000)
-			if IsControlJustPressed(0, keys['E']) then
-				WarMenu.OpenMenu('id_dog')
-				CurrentZoneActive = IdZone
-				print(IdZone)
+		for index, shop in pairs(Config.Shops) do
+			local IsZone, IdZone = IsNearZone( shop.Coords, shop.ActiveDistance, shop.Ring )
+			-- Shop control and menu open
+			if IsZone then
+				DisplayHelp(Config.Texts.Shoptext, 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
+				if IsControlJustPressed(0, keys['E']) then
+					WarMenu.SetTitle('id_dog', shop.Name)
+					WarMenu.OpenMenu('id_dog')
+					CurrentZoneActive = index
+				end
 			end
 		end
 
@@ -293,7 +295,7 @@ AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
 	end
 
 	if isInShop then
-		local x, y, z, w = table.unpack(Config.Spawndog[CurrentZoneActive])
+		local x, y, z, w = table.unpack(Config.Shops[CurrentZoneActive].Spawndog)
 		spawnAnimal(model, player, x, y, z, w, skin, PlayerPedId(), false, true) 
 	else
 		local EntityIsDead = false
