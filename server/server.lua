@@ -52,7 +52,7 @@ AddEventHandler( 'bcc:buydog', function ( args )
     u_money = Character.money
 
     if u_money <= _price then
-        TriggerClientEvent( 'UI:DrawNotification', _src, Config.Texts.NoMoney )
+        TriggerClientEvent( 'UI:DrawNotification', _src, _U('NoMoney') )
         return
     end
 
@@ -62,14 +62,14 @@ AddEventHandler( 'bcc:buydog', function ( args )
             exports.ghmattimysql:execute(" UPDATE pets SET dog = @dog, skin = @skin WHERE identifier = @identifier AND charidentifier = @charidentifier", Parameters, function(r1)
                 Character.removeCurrency(0, _price)
                 TriggerClientEvent('bcc:spawndog', _src, _model, skin, true)
-                TriggerClientEvent( 'UI:DrawNotification', _src, Config.Texts.ReplacePet )
+                TriggerClientEvent( 'UI:DrawNotification', _src, _U('ReplacePet') )
             end)
         else
             local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid,  ['dog'] = _model, ['skin'] = skin}
             exports.ghmattimysql:execute("INSERT INTO pets ( `identifier`,`charidentifier`,`dog`,`skin` ) VALUES ( @identifier,@charidentifier, @dog, @skin )", Parameters, function(r2)
                 Character.removeCurrency(0, _price)
                 TriggerClientEvent('bcc:spawndog', _src, _model, skin, true)
-                TriggerClientEvent( 'UI:DrawNotification', _src, Config.Texts.NewPet )
+                TriggerClientEvent( 'UI:DrawNotification', _src, _U('NewPet') )
             end)
         end
     end)
@@ -94,7 +94,7 @@ AddEventHandler( 'bcc:loaddog', function ( )
         local skin = result[1].skin
         TriggerClientEvent("bcc:spawndog", _src, dog, skin, false)
     else
-        TriggerClientEvent( 'UI:DrawNotification', _src, Config.Texts.NoPet )
+        TriggerClientEvent( 'UI:DrawNotification', _src, _U('NoPet') )
     end
 end)
 end )

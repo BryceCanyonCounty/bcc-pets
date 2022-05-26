@@ -6,14 +6,20 @@ rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aw
 games {"rdr3"}
 
 client_scripts {
-    'warmenu.lua',
-    'client.lua',
+    'client/warmenu.lua',
+    'client/client.lua',
     'config.lua'
 }
 
-shared_script 'config.lua'
+
+shared_scripts {
+    'config.lua',
+	'locale.lua',
+	'locales/es.lua',
+	'locales/en.lua',
+}
 
 server_scripts {
     'config.lua',
-    'server.lua',
+    'server/server.lua',
 }

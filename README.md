@@ -12,6 +12,8 @@ Join the [VORP Community Discord](https://discord.gg/23MPbQ6)
 5. Press G to spawn your pet
 6. /callpet to spawn your pet
 7. /fleepet to make your pet flee
+8. Locale config.
+    - Currently supports [es, en]
 
 ## Installation
 1. Download this repo/codebase

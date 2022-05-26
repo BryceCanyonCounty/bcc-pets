@@ -111,10 +111,10 @@ local function checkAvailability(pet)
 end
 
 Citizen.CreateThread( function()
-	WarMenu.CreateMenu('id_dog', Config.Texts.ShelterName)
+	WarMenu.CreateMenu('id_dog', '')
 	repeat
 		if WarMenu.IsMenuOpened('id_dog') then
-			if WarMenu.Button(Config.Texts.GiveAway) then
+			if WarMenu.Button(_U('GiveAway')) then
 				TriggerServerEvent('bcc:sellpet')
 				WarMenu.CloseMenu()
 			end
@@ -142,7 +142,7 @@ Citizen.CreateThread(function()
 			local IsZone, IdZone = IsNearZone( shop.Coords, shop.ActiveDistance, shop.Ring )
 			-- Shop control and menu open
 			if IsZone then
-				DisplayHelp(Config.Texts.Shoptext, 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
+				DisplayHelp(_U('Shoptext'), 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
 				if IsControlJustPressed(0, keys[Config.TriggerKeys.OpenShop]) then
 					WarMenu.SetTitle('id_dog', shop.Name)
 					WarMenu.OpenMenu('id_dog')
@@ -183,7 +183,7 @@ RegisterNetEvent( 'bcc:removedog' )
 AddEventHandler( 'bcc:removedog', function (args)
 	if currentPetPed then
 		DeleteEntity(currentPetPed)
-		ShowNotification(Config.Texts.ReleasePet)
+		ShowNotification(_U('ReleasePet'))
 	end
 end)
 
@@ -191,7 +191,7 @@ RegisterNetEvent( 'bcc:putaway' )
 AddEventHandler( 'bcc:putaway', function (args)
 	if currentPetPed then
 		DeleteEntity(currentPetPed)
-		ShowNotification(Config.Texts.PetAway)
+		ShowNotification(_U('PetAway'))
 	end
 end)
 
@@ -286,7 +286,7 @@ function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, issh
 		followOwner(currentPetPed, player, isshop)
 	
 		if isdead and Config.PetAttributes.Invincible == false then
-			ShowNotification( Config.Texts.petHealed )
+			ShowNotification( _U('petHealed') )
 		end
 	end
 end
@@ -296,7 +296,7 @@ AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
 	if recentlySpawned <= 0 then
 		recentlySpawned = Config.PetAttributes.SpawnLimiter
 	else
-		ShowNotification( Config.Texts.SpawnLimiter )
+		ShowNotification( _U('SpawnLimiter') )
 		return
 	end
 
