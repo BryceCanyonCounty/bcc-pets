@@ -26,7 +26,7 @@ Join the [VORP Community Discord](https://discord.gg/23MPbQ6)
 All configurations available in `config.lua`
 
 ## Disclaimers and Credits
-- This is a heavy modification to [bwrp_animalshelter](https://github.com/nerakhon/bwrp_animalshelter) (Made by nerakhon)
+- This is a heavy modification of [bwrp_animalshelter](https://github.com/nerakhon/bwrp_animalshelter) (Made by nerakhon), which will continue to diverge from this original codebase.
 - Originally based on HORSE SHOP FOR REDEM 0.1v by #mrlupo# / #Proky# / #Plouffe#
 
 ## TODO
