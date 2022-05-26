@@ -24,7 +24,7 @@ Config.Shops = {
 }
 
 Config.PetAttributes = {
-    FollowDistance = 15,
+    FollowDistance = 5,
     Invincible = true,
     SpawnLimiter = 2 -- set to 0 if you do not want a spawn limiter
 }
