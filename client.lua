@@ -11,7 +11,7 @@ local currentPetPed = nil;
 
 local CurrentZoneActive = 0
 
-local dogs = Config.Pets
+local pets = Config.Pets
 
 Citizen.CreateThread(function()
 	for _, info in pairs(Config.Shops) do
@@ -90,6 +90,26 @@ local function ShowNotification( _message )
 	end
 end
 
+local function checkAvailability(pet) 
+	local availability = pet.Availability
+
+	local available = false
+
+	if availability ~= nil then 
+		for index, peti in pairs(availability) do
+			if peti == CurrentZoneActive then
+				available = true
+				return available
+			end
+		end
+	else
+		available = true
+	end
+
+	return available
+
+end
+
 Citizen.CreateThread( function()
 	WarMenu.CreateMenu('id_dog', Config.Texts.ShelterName)
 	repeat
@@ -98,10 +118,16 @@ Citizen.CreateThread( function()
 				TriggerServerEvent('bcc:sellpet')
 				WarMenu.CloseMenu()
 			end
-			for i = 1, #dogs do
-				if WarMenu.Button(dogs[i]['Text'], dogs[i]['SubText'], dogs[i]['Desc']) then
-					TriggerServerEvent('bcc:buydog', dogs[i]['Param'])
-					WarMenu.CloseMenu()
+
+			local shop = Config.Shops[CurrentZoneActive]
+
+			for i = 1, #pets do
+				local acheck = checkAvailability(pets[i])
+				if acheck == true then
+					if WarMenu.Button(pets[i]['Text'], pets[i]['SubText'], pets[i]['Desc']) then
+						TriggerServerEvent('bcc:buydog', pets[i]['Param'])
+						WarMenu.CloseMenu()
+					end
 				end
 			end
 			WarMenu.Display()
@@ -252,16 +278,16 @@ function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, issh
 		SetPetAttributes(currentPetPed)
 		setPetBehavior(currentPetPed)
 		SetPedAsGroupMember(currentPetPed, GetPedGroupIndex(PlayerPedId))
-	end
 	
-	while (GetScriptTaskStatus(currentPetPed, 0x4924437d) ~= 8) do
-		Wait(1000)
-	end
-
-	followOwner(currentPetPed, player, isshop)
-
-	if isdead and Config.PetAttributes.Invincible == false then
-		ShowNotification( Config.Texts.petHealed )
+		while (GetScriptTaskStatus(currentPetPed, 0x4924437d) ~= 8) do
+			Wait(1000)
+		end
+	
+		followOwner(currentPetPed, player, isshop)
+	
+		if isdead and Config.PetAttributes.Invincible == false then
+			ShowNotification( Config.Texts.petHealed )
+		end
 	end
 end
 

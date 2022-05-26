@@ -10,10 +10,11 @@ Config.Texts = {
     ShelterName = 'Animal Shelter',
     ReleasePet = 'you released your pet',
     PetAway = 'You Put Pet Away',
-    petHealed = 'Pet was healed by a doctor',
+    PetHealed = 'Pet was healed by a doctor',
     SpawnLimiter = 'Animal spawned to recently, please wait',
     ReplacePet = 'You replaced your old pet',
-    NewPet = 'You bought a new pet'
+    NewPet = 'You bought a new pet',
+    NoPet = 'You do not have a pet'
 }
 
 Config.Shops = {
@@ -35,6 +36,7 @@ Config.PetAttributes = {
     SpawnLimiter = 2 -- set to 0 if you do not want a spawn limiter
 }
 
+-- Pets availability will only be limited if the object exists in the pet config.
 Config.Pets = {
     {
         Text = "$30 - BullFrog",
@@ -44,6 +46,9 @@ Config.Pets = {
             Price = 30,
             Model = "a_c_frogbull_01",
             Level = 1
+        },
+        Availability = {
+            1
         }
     },
     {

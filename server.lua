@@ -93,6 +93,8 @@ AddEventHandler( 'bcc:loaddog', function ( )
         local dog = result[1].dog
         local skin = result[1].skin
         TriggerClientEvent("bcc:spawndog", _src, dog, skin, false)
+    else
+        TriggerClientEvent( 'UI:DrawNotification', _src, Config.Texts.NoPet )
     end
 end)
 end )
