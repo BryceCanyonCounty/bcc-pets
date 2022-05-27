@@ -151,18 +151,21 @@ Citizen.CreateThread(function()
 			end
 		end
 
-		if IsControlJustReleased(0, keys[Config.TriggerKeys.CallPet]) then
-			pressLeft = GetGameTimer()
-			pressTime = pressTime + 1
-		end
 
-		if pressLeft ~= nil and (pressLeft + 500) < GetGameTimer() and pressTime > 0 and pressTime < 1 then
-			pressTime = 0
-		end
-
-		if pressTime == 1 then
-			TriggerServerEvent('bcc:loaddog')
-			pressTime = 0
+		if Config.CallPetKey == true then
+			if IsControlJustReleased(0, keys[Config.TriggerKeys.CallPet]) then
+				pressLeft = GetGameTimer()
+				pressTime = pressTime + 1
+			end
+	
+			if pressLeft ~= nil and (pressLeft + 500) < GetGameTimer() and pressTime > 0 and pressTime < 1 then
+				pressTime = 0
+			end
+	
+			if pressTime == 1 then
+				TriggerServerEvent('bcc:loaddog')
+				pressTime = 0
+			end
 		end
 
 		Citizen.Wait(0)

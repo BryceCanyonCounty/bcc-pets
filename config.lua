@@ -10,6 +10,8 @@ Config.TriggerKeys = {
     CallPet = 'G'
 }
 
+Config.CallPetKey = false
+
 Config.Shops = {
     {
         Name = 'Shelter',
