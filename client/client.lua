@@ -1,16 +1,10 @@
 -- Based on Malik's and Blue's animal shelters and vorp animal shelter --
-
 local keys = Config.Keys
-
 local pressTime = 0
 local pressLeft = 0
-
 local recentlySpawned = 0
-
 local currentPetPed = nil;
-
 local CurrentZoneActive = 0
-
 local pets = Config.Pets
 
 Citizen.CreateThread(function()
@@ -20,7 +14,7 @@ Citizen.CreateThread(function()
         SetBlipSprite(blip, binfo.sprite, 1)
 		SetBlipScale(blip, 0.2)
 		Citizen.InvokeNative(0x9CB1A1623062F402, blip, info.Name)
-    end  
+    end
 end)
 
 local function SetPetAttributes( entity )
@@ -90,12 +84,12 @@ local function ShowNotification( _message )
 	end
 end
 
-local function checkAvailability(pet) 
+local function checkAvailability(pet)
 	local availability = pet.Availability
 
 	local available = false
 
-	if availability ~= nil then 
+	if availability ~= nil then
 		for index, peti in pairs(availability) do
 			if peti == CurrentZoneActive then
 				available = true
@@ -157,11 +151,11 @@ Citizen.CreateThread(function()
 				pressLeft = GetGameTimer()
 				pressTime = pressTime + 1
 			end
-	
+
 			if pressLeft ~= nil and (pressLeft + 500) < GetGameTimer() and pressTime > 0 and pressTime < 1 then
 				pressTime = 0
 			end
-	
+
 			if pressTime == 1 then
 				TriggerServerEvent('bcc:loaddog')
 				pressTime = 0
@@ -199,23 +193,14 @@ AddEventHandler( 'bcc:putaway', function (args)
 end)
 
 RegisterCommand("fleepet", function(source, args, rawCommand) --  COMMAND
-    local _source = source
-    local ped = PlayerPedId()
 	TriggerEvent('bcc:putaway')
-
-
 end)
 
 RegisterCommand("callpet", function(source, args, rawCommand) --  COMMAND
-    local _source = source
-    local ped = PlayerPedId()
 	TriggerServerEvent('bcc:loaddog')
-
-
 end)
 
 -- | Spawn dog | --
-
 function setPetBehavior (petPed)
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(petPed), GetHashKey('PLAYER'))
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(petPed), 143493179)
@@ -262,7 +247,7 @@ function followOwner (currentPetPed, PlayerPedId, isInShop)
 	end
 end
 
-function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, isshop) 
+function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, isshop)
 	local EntityPedCoord = GetEntityCoords( player )
 	local EntitydogCoord = GetEntityCoords( currentPetPed )
 	if #( EntityPedCoord - EntitydogCoord ) > 100.0 or isshop or isdead then
@@ -273,7 +258,7 @@ function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, issh
 		currentPetPed = CreatePed(model, x, y, z, h, 1, 1 )
 		SET_PED_OUTFIT_PRESET( currentPetPed, skin )
 		SET_BLIP_TYPE( currentPetPed )
-		
+
 		if Config.PetAttributes.Invincible then
 			SetEntityInvincible(currentPetPed, true)
 		end
@@ -281,13 +266,13 @@ function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, issh
 		SetPetAttributes(currentPetPed)
 		setPetBehavior(currentPetPed)
 		SetPedAsGroupMember(currentPetPed, GetPedGroupIndex(PlayerPedId))
-	
+
 		while (GetScriptTaskStatus(currentPetPed, 0x4924437d) ~= 8) do
 			Wait(1000)
 		end
-	
+
 		followOwner(currentPetPed, player, isshop)
-	
+
 		if isdead and Config.PetAttributes.Invincible == false then
 			ShowNotification( _U('petHealed') )
 		end
@@ -325,7 +310,7 @@ AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
 
 	if isInShop then
 		local x, y, z, w = table.unpack(Config.Shops[CurrentZoneActive].Spawndog)
-		spawnAnimal(model, player, x, y, z, w, skin, PlayerPedId(), false, true) 
+		spawnAnimal(model, player, x, y, z, w, skin, PlayerPedId(), false, true)
 	else
 		local EntityIsDead = false
 		if (currentPetPed ~= nil) then
@@ -335,13 +320,10 @@ AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
 		if EntityIsDead then
 			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), true, false)
 		else
-			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), false, false) 
+			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), false, false)
 		end
 	end
 end)
-
-
-
 
 function SET_BLIP_TYPE ( animal )
 	return Citizen.InvokeNative(0x23f74c2fda6e7c61, -1749618580, animal)
@@ -369,5 +351,3 @@ end
 		end
     end
 end)
-
-
