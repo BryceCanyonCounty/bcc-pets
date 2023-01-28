@@ -1,4 +1,3 @@
--- Based on Malik's and Blue's animal shelters and vorp animal shelter --
 local keys = Config.Keys
 local pressTime = 0
 local pressLeft = 0

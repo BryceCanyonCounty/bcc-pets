@@ -1,11 +1,25 @@
--- Based on Malik's and Blue's animal shelters and vorp animal shelter --
-
 local VorpCore = {}
 
 TriggerEvent("getCore",function(core)
     VorpCore = core
 end)
-VORP = exports.vorp_core:vorpAPI()
+
+Citizen.CreateThread(function()
+    -- Initiate Table
+    local result = MySQL.query.await([[
+        CREATE TABLE IF NOT EXISTS `pets` (
+        `identifier` varchar(40) NOT NULL,
+        `charidentifier` int(11) NOT NULL DEFAULT 0,
+        `dog` varchar(255) NOT NULL,
+        `skin` int(11) NOT NULL DEFAULT 0,
+        UNIQUE KEY `identifier` (`identifier`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    ]])
+    if result and result.warningStatus > 1 then
+        print("ERROR: Failed to create AFK WL Table")
+    end
+end)
+
 
 RegisterServerEvent('bcc:sellpet')
 AddEventHandler('bcc:sellpet', function()
@@ -42,9 +56,9 @@ AddEventHandler( 'bcc:buydog', function ( args )
     local _model = args['Model']
     local skin = math.floor(math.random(0, 2))
 
-    u_identifier = Character.identifier
-    u_charid = Character.charIdentifier
-    u_money = Character.money
+    local u_identifier = Character.identifier
+    local u_charid = Character.charIdentifier
+    local u_money = Character.money
 
     if u_money <= _price then
         TriggerClientEvent( 'UI:DrawNotification', _src, _U('NoMoney') )
@@ -76,8 +90,8 @@ AddEventHandler( 'bcc:loaddog', function ( )
     local User = VorpCore.getUser(_src)
     local Character = User.getUsedCharacter
 
-    u_identifier = Character.identifier
-    u_charid = Character.charIdentifier
+    local u_identifier = Character.identifier
+    local u_charid = Character.charIdentifier
 
     local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid }
     MySQL.query( "SELECT * FROM pets WHERE identifier = @identifier  AND charidentifier = @charidentifier", Parameters, function(result)

@@ -22,5 +22,5 @@ shared_scripts {
 server_scripts {
     'config.lua',
     'server/server.lua',
-    '@mysql-async/lib/MySQL.lua'
+    '@oxmysql/lib/MySQL.lua'
 }
