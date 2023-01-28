@@ -105,7 +105,7 @@ Config.Pets = {
             Model = "A_C_DogHound_01",
             Level = 1
         }
-    }, 
+    },
     {
         Text = "$200 - Border Collie",
         SubText = "",
@@ -126,7 +126,7 @@ Config.Pets = {
             Level = 1
         }
     },
-    
+
     {
         Text = "$100 - Foxhound",
         SubText = "",
@@ -199,4 +199,4 @@ Config.Pets = {
     }
 }
 
-Config.Keys = { ['G'] = 0x760A9C6F, ["B"] = 0x4CC0E2FE, ['S'] = 0xD27782E3, ['W'] = 0x8FD015D8, ['H'] = 0x24978A28, ['G'] = 0x5415BE48, ["ENTER"] = 0xC7B5340A, ['E'] = 0xDFF812F9, ["J"] = 0xF3830D8E }
+Config.Keys = {["B"] = 0x4CC0E2FE, ['S'] = 0xD27782E3, ['W'] = 0x8FD015D8, ['H'] = 0x24978A28, ['G'] = 0x5415BE48, ["ENTER"] = 0xC7B5340A, ['E'] = 0xDFF812F9, ["J"] = 0xF3830D8E }

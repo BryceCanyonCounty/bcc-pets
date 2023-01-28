@@ -26,11 +26,9 @@ Join the [VORP Community Discord](https://discord.gg/23MPbQ6)
 All configurations available in `config.lua`
 
 ## Disclaimers and Credits
-- This is a heavy modification of [bwrp_animalshelter](https://github.com/nerakhon/bwrp_animalshelter) (Made by nerakhon), _[bcc-pets will continue to diverge from the original codebase, hence this new codebase]_.
+- This is a heavy modification of [bwrp_animalshelter](https://github.com/nerakhon/bwrp_animalshelter) (Made by nerakhon), _[bcc-pets will continue to diverge from the original codebase, hence this new codebase]_
+- Based on Malik's and Blue's animal shelters and vorp animal shelter
 - Originally based on HORSE SHOP FOR REDEM 0.1v by #mrlupo# / #Proky# / #Plouffe#
-
-## TODO
-- [Trello](https://trello.com/b/7Iep2x4m/bcc-animals)
 
  ## Dependency
  - Vorp Core

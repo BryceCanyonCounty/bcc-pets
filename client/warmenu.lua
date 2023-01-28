@@ -109,7 +109,7 @@ local function drawText(text, x, y, font, color, scale, center, shadow, alignRig
 	if center then
 		SetTextCentre(center)
 	elseif alignRight then
-		
+
 	end
 
 	DisplayText(str, x, y)
