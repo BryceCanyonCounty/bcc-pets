@@ -6,12 +6,12 @@ Join the [VORP Community Discord](https://discord.gg/23MPbQ6)
 
 ## Features
 1. Configurable pet shops
-2. Purchase pets
+2. Purchase pets (w/ Optional Joblock)
 3. Pets will follow you around
 4. Pet or pat your pet
-5. Press G to spawn your pet
-6. /callpet to spawn your pet
-7. /fleepet to make your pet flee
+5. /callpet to spawn your pet
+6. /fleepet to make your pet flee
+7. /pet for full Pet Ineractions menu
 8. Locale config.
     - Currently supports [es, en]
 
@@ -19,8 +19,7 @@ Join the [VORP Community Discord](https://discord.gg/23MPbQ6)
 1. Download this repo/codebase
 2. Extract and place `bcc-pets` into your `resources` folder
 3. Add `ensure bcc-pets` to your `server.cfg` file
-4. import `pets.sql` into your database 
-5. Restart your server (unless you have nightly restarts)
+4. Restart your server (unless you have nightly restarts)
 
 ## How-to-configure
 All configurations available in `config.lua`
