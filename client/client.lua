@@ -1,22 +1,15 @@
-local keys = Config.Keys
-local pressTime = 0
-local pressLeft = 0
 local recentlySpawned = 0
-local currentPetPed = nil;
+local currentPetPed = nil
 local CurrentZoneActive = 0
 local pets = Config.Pets
-
-Citizen.CreateThread(function()
-	for _, info in pairs(Config.Shops) do
-		local binfo = info.Blip
-        local blip = N_0x554d9d53f696d002(1664425300, binfo.x, binfo.y, binfo.z)
-        SetBlipSprite(blip, binfo.sprite, 1)
-		SetBlipScale(blip, 0.2)
-		Citizen.InvokeNative(0x9CB1A1623062F402, blip, info.Name)
-    end
+local shopName = nil
+local sleep = 500
+local VORPutils = {}
+TriggerEvent("getUtils", function(utils)
+    VORPutils = utils
 end)
 
-local function SetPetAttributes( entity )
+function SetPetAttributes( entity )
     -- | SET_ATTRIBUTE_POINTS | --
     Citizen.InvokeNative( 0x09A59688C26D88DF, entity, 0, 1100 )
     Citizen.InvokeNative( 0x09A59688C26D88DF, entity, 1, 1100 )
@@ -39,57 +32,11 @@ local function SetPetAttributes( entity )
     Citizen.InvokeNative( 0xF6A7C08DF2E28B28, entity, 2, 5000.0, false )
 end
 
-local function IsNearZone ( location, distance, ring )
-
-	local player = PlayerPedId()
-	local playerloc = GetEntityCoords(player, 0)
-
-	for i = 1, #location do
-		if #(playerloc - location[i]) < distance then
-			if ring == true then
-				Citizen.InvokeNative(0x2A32FAA57B937173, 0x6903B113, location[i].x, location[i].y, location[i].z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 2.0, 2.0, 1.0, 100, 1, 1, 190, false, true, 2, false, false, false, false)
-			end
-			return true, i
-		end
-	end
-
-end
-
-local function DisplayHelp( _message, x, y, w, h, enableShadow, col1, col2, col3, a, centre )
-
-	local str = CreateVarString(10, "LITERAL_STRING", _message, Citizen.ResultAsLong())
-
-	SetTextScale(w, h)
-	SetTextColor(col1, col2, col3, a)
-
-	SetTextCentre(centre)
-
-	if enableShadow then
-		SetTextDropshadow(1, 0, 0, 0, 255)
-	end
-
-	Citizen.InvokeNative(0xADA9255D, 10);
-
-	DisplayText(str, x, y)
-
-end
-
-local function ShowNotification( _message )
-	local timer = 200
-	while timer > 0 do
-		DisplayHelp(_message, 0.50, 0.90, 0.6, 0.6, true, 161, 3, 0, 255, true)
-		timer = timer - 1
-		Citizen.Wait(0)
-	end
-end
-
-local function checkAvailability(pet)
+function CheckAvailability(pet)
 	local availability = pet.Availability
-
 	local available = false
-
 	if availability ~= nil then
-		for index, peti in pairs(availability) do
+		for _, peti in pairs(availability) do
 			if peti == CurrentZoneActive then
 				available = true
 				return available
@@ -98,109 +45,11 @@ local function checkAvailability(pet)
 	else
 		available = true
 	end
-
 	return available
-
 end
 
-Citizen.CreateThread( function()
-	WarMenu.CreateMenu('id_dog', '')
-	repeat
-		if WarMenu.IsMenuOpened('id_dog') then
-			if WarMenu.Button(_U('GiveAway')) then
-				TriggerServerEvent('bcc:sellpet')
-				WarMenu.CloseMenu()
-			end
-
-			local shop = Config.Shops[CurrentZoneActive]
-
-			for i = 1, #pets do
-				local acheck = checkAvailability(pets[i])
-				if acheck == true then
-					if WarMenu.Button(pets[i]['Text'], pets[i]['SubText'], pets[i]['Desc']) then
-						TriggerServerEvent('bcc:buydog', pets[i]['Param'])
-						WarMenu.CloseMenu()
-					end
-				end
-			end
-			WarMenu.Display()
-		end
-		Citizen.Wait(0)
-	until false
-end)
-
-Citizen.CreateThread(function()
-	while true do
-		for index, shop in pairs(Config.Shops) do
-			local IsZone, IdZone = IsNearZone( shop.Coords, shop.ActiveDistance, shop.Ring )
-			-- Shop control and menu open
-			if IsZone then
-				DisplayHelp(_U('Shoptext'), 0.50, 0.95, 0.6, 0.6, true, 255, 255, 255, 255, true)
-				if IsControlJustPressed(0, keys[Config.TriggerKeys.OpenShop]) then
-					WarMenu.SetTitle('id_dog', shop.Name)
-					WarMenu.OpenMenu('id_dog')
-					CurrentZoneActive = index
-				end
-			end
-		end
-
-
-		if Config.CallPetKey == true then
-			if IsControlJustReleased(0, keys[Config.TriggerKeys.CallPet]) then
-				pressLeft = GetGameTimer()
-				pressTime = pressTime + 1
-			end
-
-			if pressLeft ~= nil and (pressLeft + 500) < GetGameTimer() and pressTime > 0 and pressTime < 1 then
-				pressTime = 0
-			end
-
-			if pressTime == 1 then
-				TriggerServerEvent('bcc:loaddog')
-				pressTime = 0
-			end
-		end
-
-		Citizen.Wait(0)
-	end
-end)
-
-
--- | Notification | --
-
-RegisterNetEvent('UI:DrawNotification')
-AddEventHandler('UI:DrawNotification', function( _message )
-	ShowNotification( _message )
-end)
-
--- | Remove Dog | --
-
-RegisterNetEvent( 'bcc:removedog' )
-AddEventHandler( 'bcc:removedog', function (args)
-	if currentPetPed then
-		DeleteEntity(currentPetPed)
-		ShowNotification(_U('ReleasePet'))
-	end
-end)
-
-RegisterNetEvent( 'bcc:putaway' )
-AddEventHandler( 'bcc:putaway', function (args)
-	if currentPetPed then
-		DeleteEntity(currentPetPed)
-		ShowNotification(_U('PetAway'))
-	end
-end)
-
-RegisterCommand("fleepet", function(source, args, rawCommand) --  COMMAND
-	TriggerEvent('bcc:putaway')
-end)
-
-RegisterCommand("callpet", function(source, args, rawCommand) --  COMMAND
-	TriggerServerEvent('bcc:loaddog')
-end)
-
--- | Spawn dog | --
-function setPetBehavior (petPed)
+-- | Functions | --
+function SetPetBehavior (petPed)
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(petPed), GetHashKey('PLAYER'))
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(petPed), 143493179)
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(petPed), -2040077242)
@@ -239,14 +88,13 @@ function setPetBehavior (petPed)
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(petPed), -1683752762)
 end
 
-function followOwner (currentPetPed, PlayerPedId, isInShop)
+function FollowOwner (currentPetPed, PlayerPedId, isInShop)
+	Wait(8500)
 	TaskFollowToOffsetOfEntity(currentPetPed, PlayerPedId, 0.0, -1.5, 0.0, 1.0, -1,  Config.PetAttributes.FollowDistance * 100000000, 1, 1, 0, 0, 1)
-	if isInShop then
-		Citizen.InvokeNative(0x489FFCCCE7392B55, currentPetPed, PlayerPedId)
-	end
+	Citizen.InvokeNative(0x489FFCCCE7392B55, currentPetPed, PlayerPedId)
 end
 
-function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, isshop)
+function SpawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, isshop)
 	local EntityPedCoord = GetEntityCoords( player )
 	local EntitydogCoord = GetEntityCoords( currentPetPed )
 	if #( EntityPedCoord - EntitydogCoord ) > 100.0 or isshop or isdead then
@@ -263,42 +111,195 @@ function spawnAnimal (model, player, x, y, z, h, skin, PlayerPedId, isdead, issh
 		end
 
 		SetPetAttributes(currentPetPed)
-		setPetBehavior(currentPetPed)
+		SetPetBehavior(currentPetPed)
 		SetPedAsGroupMember(currentPetPed, GetPedGroupIndex(PlayerPedId))
 
 		while (GetScriptTaskStatus(currentPetPed, 0x4924437d) ~= 8) do
 			Wait(1000)
 		end
 
-		followOwner(currentPetPed, player, isshop)
+		FollowOwner(currentPetPed, player, isshop)
 
 		if isdead and Config.PetAttributes.Invincible == false then
-			ShowNotification( _U('petHealed') )
+			TriggerEvent("vorp:TipRight", _U("petHealed"))
 		end
 	end
 end
 
-RegisterNetEvent( 'bcc:spawndog' )
-AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
+function SpawnThread()
+	CreateThread(function()
+		while true do
+			Wait(1000)
+			if recentlySpawned > 0 then
+				recentlySpawned = recentlySpawned - 1
+			elseif recentlySpawned <= 0 then
+				break
+			end
+		end
+	end)
+end
+
+function SET_BLIP_TYPE (animal)
+	return Citizen.InvokeNative(0x23f74c2fda6e7c61, -1749618580, animal)
+end
+
+function SET_ANIMAL_TUNING_BOOL_PARAM (animal, p1, p2)
+	return Citizen.InvokeNative(0x9FF1E042FA597187, animal, p1, p2)
+end
+
+function SET_PED_DEFAULT_OUTFIT (dog)
+	return Citizen.InvokeNative(0x283978A15512B2FE, dog, true)
+end
+
+function SET_PED_OUTFIT_PRESET (dog, preset )
+	return Citizen.InvokeNative(0x77FF8D35EEC6BBC4, dog, preset, 0)
+end
+
+-- | Threads | --
+CreateThread(function()
+	for _, info in pairs(Config.Shops) do
+		local binfo = info.Blip
+        local blip = N_0x554d9d53f696d002(1664425300, binfo.x, binfo.y, binfo.z)
+        SetBlipSprite(blip, binfo.sprite, 1)
+		SetBlipScale(blip, 0.2)
+		Citizen.InvokeNative(0x9CB1A1623062F402, blip, info.Name)
+    end
+end)
+
+CreateThread(function()
+	local PetStores = VORPutils.Prompts:SetupPromptGroup()
+    local PetStoresPrompt = PetStores:RegisterPrompt(_U("PromptName"), 0x760A9C6F, 1, 1, false, 'hold', {timedeventhash = "SHORT_TIMED_EVENT"})
+    while true do
+        sleep = 500
+        local coords = GetEntityCoords(PlayerPedId())
+            for index, v in pairs(Config.Shops) do
+                local dist = #(coords - v.Coords)
+                if dist <= 10 then
+                    sleep = 5
+                end
+                if dist < 2.0 then
+                    PetStores:ShowGroup(_U("PromptGroupName"))
+					shopName = v.Name
+					CurrentZoneActive = index
+                end
+            end
+        if PetStoresPrompt:HasCompleted() then
+			WarMenu.SetTitle('id_dog', shopName)
+			WarMenu.OpenMenu('id_dog')
+        end
+        Wait(sleep)
+    end
+end)
+
+CreateThread(function()
+	WarMenu.CreateMenu('id_dog', '')
+	WarMenu.CreateMenu('pets', '')
+	WarMenu.CreateMenu('transfer', '')
+	repeat
+		if WarMenu.IsMenuOpened('id_dog') then
+			if WarMenu.Button(_U('GiveAway')) then
+				TriggerServerEvent('bcc:sellpet')
+				WarMenu.CloseMenu()
+			end
+			for i = 1, #pets do
+				local acheck = CheckAvailability(pets[i])
+				if acheck == true then
+					if WarMenu.Button("$"..pets[i]['Param'].Price.." - "..pets[i]['Text'], pets[i]['SubText'], pets[i]['Desc']) then
+						TriggerServerEvent('bcc:buydog', pets[i]['Param'])
+						WarMenu.CloseMenu()
+					end
+				end
+			end
+			WarMenu.Display()
+		end
+		if WarMenu.IsMenuOpened('pets') then
+			if WarMenu.Button(_U('CallPet')) then
+				TriggerServerEvent('bcc:loaddog')
+				WarMenu.CloseMenu()
+			end
+			if WarMenu.Button(_U('PutAwayPet')) then
+				TriggerEvent('bcc:putaway')
+				WarMenu.CloseMenu()
+			end
+			if WarMenu.Button(_U('TransferOwnership')) then
+				TriggerServerEvent('bcc-pets:getpets')
+				WarMenu.CloseMenu()
+			end
+			WarMenu.Display()
+		end
+		if WarMenu.IsMenuOpened('transfer') then
+			for i = 1, #pets do
+				if pets[i]['Param'].Model == PlayerPets.dog then
+					if WarMenu.Button(pets[i]['Text'], pets[i]['SubText'], pets[i]['Desc']) then
+						TriggerEvent('bcc-pets:transferpetinput', pets[i]['Param'])
+						WarMenu.CloseMenu()
+						PlayerPets = {}
+					end
+				end
+			end
+			WarMenu.Display()
+		end
+		Wait(0)
+	until false
+end)
+
+-- | Transfer Pet | --
+RegisterNetEvent('bcc-pets:transferpetinput', function(pet)
+	local button = "Confirm"
+	local placeholder = "Insert Person's ID #"
+    TriggerEvent("vorpinputs:getInput", button, placeholder, function(result)
+        if result ~= "" or result then -- making sure its not empty or nil
+            TriggerServerEvent('bcc-pets:transferownership', result, pet)
+        else
+			TriggerEvent("vorp:TipRight", _U("RequireID"), 4000)
+        end
+    end)
+end)
+
+RegisterNetEvent('bcc-pets:getpetsreturn', function(result)
+	PlayerPets = result
+	Wait(1000)
+	WarMenu.SetTitle('transfer', _U("PetMenu"))
+	WarMenu.OpenMenu('transfer')
+end)
+
+-- | Remove Pet | --
+RegisterNetEvent('bcc:removedog', function ()
+	if currentPetPed then
+		DeleteEntity(currentPetPed)
+		TriggerEvent("vorp:TipRight", _U("ReleasePet"))
+	end
+end)
+
+RegisterNetEvent('bcc:putaway', function ()
+	if currentPetPed then
+		TaskAnimalFlee(currentPetPed, PlayerPedId(), -1)
+		TriggerEvent("vorp:TipRight", _U("PetAway"))
+		Wait(5000)
+		DeleteEntity(currentPetPed)
+	end
+end)
+
+-- | Spawn Pet | --
+RegisterNetEvent('bcc:spawndog', function ( dog, skin, isInShop )
 	if recentlySpawned <= 0 then
 		recentlySpawned = Config.PetAttributes.SpawnLimiter
+		SpawnThread()
 	else
-		ShowNotification( _U('SpawnLimiter') )
+		TriggerEvent("vorp:TipRight", _U("SpawnLimiter"))
 		return
 	end
 
-
 	local player = PlayerPedId()
-
 	local model = GetHashKey( dog )
-	local x, y, z, heading, a, b
+	local x, y, z, heading, b, w
 
 	-- Set initial pet location
 	if isInShop then
 		x, y, z, heading = -373.302, 786.904, 116.169, 273.18
 	else
 		x, y, z = table.unpack( GetOffsetFromEntityInWorldCoords( player, 0.0, -5.0, 0.3 ) )
-		a, b = GetGroundZAndNormalFor_3dCoord( x, y, z + 10 )
+		b = GetGroundZAndNormalFor_3dCoord( x, y, z + 10 )
 	end
 
 	RequestModel( model )
@@ -308,8 +309,8 @@ AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
 	end
 
 	if isInShop then
-		local x, y, z, w = table.unpack(Config.Shops[CurrentZoneActive].Spawndog)
-		spawnAnimal(model, player, x, y, z, w, skin, PlayerPedId(), false, true)
+		x, y, z, w = table.unpack(Config.Shops[CurrentZoneActive].SpawnPet)
+		SpawnAnimal(model, player, x, y, z, w, skin, PlayerPedId(), false, true)
 	else
 		local EntityIsDead = false
 		if (currentPetPed ~= nil) then
@@ -317,36 +318,23 @@ AddEventHandler( 'bcc:spawndog', function ( dog, skin, isInShop )
 		end
 
 		if EntityIsDead then
-			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), true, false)
+			SpawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), true, false)
 		else
-			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), false, false)
+			SpawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), false, false)
 		end
 	end
 end)
 
-function SET_BLIP_TYPE ( animal )
-	return Citizen.InvokeNative(0x23f74c2fda6e7c61, -1749618580, animal)
-end
+-- | Commands | --
+RegisterCommand(Config.Commands.FleePet, function()
+	TriggerEvent('bcc:putaway')
+end)
 
-function SET_ANIMAL_TUNING_BOOL_PARAM ( animal, p1, p2 )
-	return Citizen.InvokeNative( 0x9FF1E042FA597187, animal, p1, p2 )
-end
+RegisterCommand(Config.Commands.CallPet, function()
+	TriggerServerEvent('bcc:loaddog')
+end)
 
-function SET_PED_DEFAULT_OUTFIT ( dog )
-	return Citizen.InvokeNative( 0x283978A15512B2FE, dog, true )
-end
-
-function SET_PED_OUTFIT_PRESET ( dog, preset )
-	return Citizen.InvokeNative( 0x77FF8D35EEC6BBC4, dog, preset, 0 )
-end
-
--- | Timer | --
-
- Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(1000)
-		if recentlySpawned > 0 then
-			recentlySpawned = recentlySpawned - 1
-		end
-    end
+RegisterCommand(Config.Commands.PetMenu, function()
+	WarMenu.SetTitle('pets', _U("PetMenu"))
+	WarMenu.OpenMenu('pets')
 end)

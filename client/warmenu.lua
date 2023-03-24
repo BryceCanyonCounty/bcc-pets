@@ -1,42 +1,29 @@
--- Based on Malik's and Blue's animal shelters and vorp animal shelter --
-
-
 WarMenu = { }
-
 WarMenu.debug = false
-
-
 local menus = { }
 local keys = { up = 0x6319DB71, down = 0x05CA7C52, left = 0xA65EBAB4, right = 0xDEB34313, select = 0xC7B5340A, back = 0x156F7119 }
-
 local optionCount = 0
-
 local currentKey = nil
 local currentMenu = nil
-
 local titleHeight = 0.09
 local titleYOffset = 0.010
 local titleScale = 1.0
-
 local descWidth = 0.15
-local descHeight = 0.030
-
 local menuWidth = 0.200
-
 local buttonHeight = 0.038
 local buttonFont = 6
 local buttonScale = 0.365
-
 local buttonTextXOffset = 0.003
 local buttonTextYOffset = 0.005
-
+local k_delay = 180
+local k_delay2 = 160
+local k_delay3 = 130
 
 local function debugPrint(text)
 	if WarMenu.debug then
 		Citizen.Trace('[WarMenu] '..tostring(text))
 	end
 end
-
 
 local function setMenuProperty(id, property, value)
 	if id and menus[id] then
@@ -45,7 +32,6 @@ local function setMenuProperty(id, property, value)
 	end
 end
 
-
 local function isMenuVisible(id)
 	if id and menus[id] then
 		return menus[id].visible
@@ -53,7 +39,6 @@ local function isMenuVisible(id)
 		return false
 	end
 end
-
 
 local function setMenuVisible(id, visible, holdCurrent)
 	if id and menus[id] then
@@ -88,7 +73,6 @@ local function drawMultilineFormat(str)
     return str, #mysplit( str, "\n" )
 end
 
-
 local function drawText(text, x, y, font, color, scale, center, shadow, alignRight)
 
 	local str = CreateVarString(10, "LITERAL_STRING", text)
@@ -116,7 +100,6 @@ local function drawText(text, x, y, font, color, scale, center, shadow, alignRig
 
 end
 
-
 local function drawTitle()
 	if menus[currentMenu] then
 		local x = menus[currentMenu].x + menus[currentMenu].width / 2
@@ -129,7 +112,6 @@ local function drawTitle()
 		drawText(menus[currentMenu].title, x, y - titleHeight / 2 + titleYOffset, menus[currentMenu].titleFont, { r = 255, g = 255, b = 255, a = 255 } , titleScale, true, true, false)
 	end
 end
-
 
 local function drawSubTitle()
 	if menus[currentMenu] then
@@ -148,7 +130,6 @@ local function drawSubTitle()
 		drawText(tostring(menus[currentMenu].currentOption)..' / '..tostring(optionCount), menus[currentMenu].x + buttonTextXOffset + menuWidth - 0.015, y - buttonHeight / 2 + buttonTextYOffset, buttonFont, subTextColor, buttonScale, false, shadow, true)
 	end
 end
-
 
 local function drawButton(text, subText)
 	local x = menus[currentMenu].x + menus[currentMenu].width / 2
@@ -200,7 +181,6 @@ local function drawButton(text, subText)
 end
 
 local function drawDescription(text)
-
 	local x = menus[currentMenu].x + menus[currentMenu].width / 2
 	local multiplier = nil
 
@@ -232,36 +212,13 @@ local function drawDescription(text)
 		SetScriptGfxDrawOrder(0)
 		DrawSprite("menu_textures", "translate_bg_1a", x, y + descWidth/2, menus[currentMenu].width + 0.02, descWidth, 0.0, 0, 0, 0, 255, 0)
 	end
-
 end
-
-local function drawArrows()
-
-    local x = menus[currentMenu].x + menus[currentMenu].width / 2
-    local menuHeight = buttonHeight * ( menus[currentMenu].maxOptionCount + 1 )
-	local y = menus[currentMenu].y + titleHeight + menuHeight + buttonHeight / 2
-	local color = { r = 0, g = 0, b = 0, a = 195 }
-
-    if HasStreamedTextureDictLoaded("generic_textures") then
-        local colour = menus[currentMenu].subTitleBackgroundColor
-
-		if HasStreamedTextureDictLoaded("menu_textures") then
-			SetScriptGfxDrawOrder(0)
-			DrawSprite("menu_textures", "translate_bg_1a", x, y, menus[currentMenu].width + 0.02, buttonHeight, 0.0, 0, 0, 0, 255, 0)
-		end
-
-		DrawSprite("CommonMenu", "shop_arrows_upanddown", x, y, 0.0200, 0.04, 0.0, 255, 255, 255, 255, 0)
-
-    end
-
-end
-
 
 function WarMenu.CreateMenu(id, title)
 	-- Default settings
 	menus[id] = { }
 	menus[id].title = title or ''
-	menus[id].subTitle = 'Interaction'
+	menus[id].subTitle = 'Pet Interactions'
 	menus[id].desTitle = ''
 	menus[id].subMenuLeft = ''
 
@@ -310,7 +267,6 @@ function WarMenu.CreateMenu(id, title)
 	menus[id].buttonPressedSound = { name = "SELECT", set = "HUD_FRONTEND_DEFAULT_SOUNDSET" } --https://pastebin.com/0neZdsZ5
 end
 
-
 function WarMenu.CreateSubMenu(id, parent, subTitle)
 	if menus[parent] then
 		WarMenu.CreateMenu(id, menus[parent].title)
@@ -341,11 +297,9 @@ function WarMenu.CreateSubMenu(id, parent, subTitle)
 	end
 end
 
-
 function WarMenu.CurrentMenu()
 	return currentMenu
 end
-
 
 function WarMenu.OpenMenu(id)
 	if id and menus[id] then
@@ -357,11 +311,9 @@ function WarMenu.OpenMenu(id)
 	end
 end
 
-
 function WarMenu.IsMenuOpened(id)
 	return isMenuVisible(id)
 end
-
 
 function WarMenu.IsAnyMenuOpened()
 	for id, _ in pairs(menus) do
@@ -371,7 +323,6 @@ function WarMenu.IsAnyMenuOpened()
 	return false
 end
 
-
 function WarMenu.IsMenuAboutToBeClosed()
 	if menus[currentMenu] then
 		return menus[currentMenu].aboutToBeClosed
@@ -379,7 +330,6 @@ function WarMenu.IsMenuAboutToBeClosed()
 		return false
 	end
 end
-
 
 function WarMenu.CloseMenu()
 	if menus[currentMenu] then
@@ -398,9 +348,7 @@ function WarMenu.CloseMenu()
 	end
 end
 
-
 function WarMenu.Button(text, subText, descText)
-
 	if menus[currentMenu] then
 
 		descText = descText or ''
@@ -428,11 +376,9 @@ function WarMenu.Button(text, subText, descText)
 		return false
 	else
 		debugPrint('Failed to create '..buttonText..' button: '..tostring(currentMenu)..' menu doesn\'t exist')
-
 		return false
 	end
 end
-
 
 function WarMenu.MenuButton(text, id)
 	if menus[id] then
@@ -445,33 +391,26 @@ function WarMenu.MenuButton(text, id)
 	else
 		debugPrint('Failed to create '..tostring(text)..' menu button: '..tostring(id)..' submenu doesn\'t exist')
 	end
-
 	return false
 end
-
 
 function WarMenu.CheckBox(text, checked, callback)
 	if WarMenu.Button(text, checked and 'On' or 'Off') then
 		checked = not checked
 		debugPrint(tostring(text)..' checkbox changed to '..tostring(checked))
 		if callback then callback(checked) end
-
 		return true
 	end
-
 	return false
 end
-
 
 function WarMenu.ComboBox(text, items, currentIndex, selectedIndex, callback)
 	local itemsCount = #items
 	local selectedItem = items[currentIndex]
 	local isCurrent = menus[currentMenu].currentOption == (optionCount + 1)
-
 	if itemsCount > 1 and isCurrent then
 		selectedItem = '← '..tostring(selectedItem)..' →'
 	end
-
 	if WarMenu.Button(text, selectedItem) then
 		selectedIndex = currentIndex
 		callback(currentIndex, selectedIndex)
@@ -485,11 +424,9 @@ function WarMenu.ComboBox(text, items, currentIndex, selectedIndex, callback)
 	else
 		currentIndex = selectedIndex
 	end
-
 	callback(currentIndex, selectedIndex)
 	return false
 end
-
 
 function WarMenu.Display()
 	if isMenuVisible(currentMenu) then
@@ -541,10 +478,6 @@ function WarMenu.Display()
 	end
 end
 
-local k_delay = 180 -- 1er Delay
-local k_delay2 = 160 -- puis 2 3 et 4ème delay
-local k_delay3 = 130 -- et si touche restée appuyée.
-
 function isPressedKey(key)
 	if key ~= lastKey and IsDisabledControlPressed(1, key) then -- Pas la même touche -> RESET
 		lastKey = key
@@ -590,52 +523,42 @@ function WarMenu.SetMenuWidth(id, width)
 	setMenuProperty(id, 'width', width)
 end
 
-
 function WarMenu.SetMenuX(id, x)
 	setMenuProperty(id, 'x', x)
 end
-
 
 function WarMenu.SetMenuY(id, y)
 	setMenuProperty(id, 'y', y)
 end
 
-
 function WarMenu.SetMenuMaxOptionCountOnScreen(id, count)
 	setMenuProperty(id, 'maxOptionCount', count)
 end
-
 
 function WarMenu.SetTitle(id, title)
 	setMenuProperty(id, 'title', title)
 end
 
-
 function WarMenu.SetTitleColor(id, r, g, b, a)
 	setMenuProperty(id, 'titleColor', { ['r'] = r, ['g'] = g, ['b'] = b, ['a'] = a or menus[id].titleColor.a })
 end
 
-
 function WarMenu.SetTitleBackgroundColor(id, r, g, b, a)
 	setMenuProperty(id, 'titleBackgroundColor', { ['r'] = r, ['g'] = g, ['b'] = b, ['a'] = a or menus[id].titleBackgroundColor.a })
 end
-
 
 function WarMenu.SetTitleBackgroundSprite(id, textureDict, textureName)
 	RequestStreamedTextureDict(textureDict)
 	setMenuProperty(id, 'titleBackgroundSprite', { dict = textureDict, name = textureName })
 end
 
-
 function WarMenu.SetSubTitle(id, text)
 	setMenuProperty(id, 'subTitle', string.upper(text))
 end
 
-
 function WarMenu.SetMenuBackgroundColor(id, r, g, b, a)
 	setMenuProperty(id, 'menuBackgroundColor', { ['r'] = r, ['g'] = g, ['b'] = b, ['a'] = a or menus[id].menuBackgroundColor.a })
 end
-
 
 function WarMenu.SetMenuTextColor(id, r, g, b, a)
 	setMenuProperty(id, 'menuTextColor', { ['r'] = r, ['g'] = g, ['b'] = b, ['a'] = a or menus[id].menuTextColor.a })
@@ -648,7 +571,6 @@ end
 function WarMenu.SetMenuFocusColor(id, r, g, b, a)
 	setMenuProperty(id, 'menuFocusBackgroundColor', { ['r'] = r, ['g'] = g, ['b'] = b, ['a'] = a or menus[id].menuFocusColor.a })
 end
-
 
 function WarMenu.SetMenuButtonPressedSound(id, name, set)
 	setMenuProperty(id, 'buttonPressedSound', { ['name'] = name, ['set'] = set })
