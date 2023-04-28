@@ -206,10 +206,6 @@ function CallPetMenu()
 			TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_WRITE_NOTEBOOK"), -1, true, false, false, false)
 		end
 	end
-	if Config.PetMenu.progressbar then
-		timer = 3500
-    	exports.mega_progressbars:DisplayProgressBar(timer, "Checking on your pets...", true)
-    end
 	local MenuNumber = 1
 	VORPcore.RpcCall("GetPlayersPets", function(result)
 		if result then
@@ -330,7 +326,6 @@ function PetManagement(PetDataTable)
             if data.current.value == "call" then
 				ClearPedTasks(PlayerPedId())
 				menu.close()
-				exports.mega_progressbars:DisplayProgressBar(2000, "Calling your pet...", true)
 				TriggerServerEvent('bcc-pets:callpet', PetDataTable.petid)
 			elseif data.current.value == "home" then
 				if ActivePets[PetDataTable.petid] then

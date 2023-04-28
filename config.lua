@@ -15,7 +15,6 @@ Config.PetMenu = {
     active = true,
     command = 'pet',                        -- Command to open Pet Menu
     animation = true,                       -- Opening book scenario
-    progressbar = true                      -- Set to VORP Export
 }
 
 Config.PetAttributes = {
