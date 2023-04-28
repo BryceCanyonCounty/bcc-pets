@@ -1,51 +1,45 @@
-local VORPcore = {}
-    TriggerEvent("getCore", function(core)
-    VORPcore = core
+-- VORP
+local VorpCore = {}
+TriggerEvent("getCore",function(core)
+    VorpCore = core
 end)
-local authorized = false
+VORP = exports.vorp_core:vorpAPI()
 
 CreateThread(function()
     -- Initiate Table
     local result = MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `pets` (
-        `identifier` varchar(40) NOT NULL,
-        `charidentifier` int(11) NOT NULL DEFAULT 0,
-        `dog` varchar(255) NOT NULL,
-        `skin` int(11) NOT NULL DEFAULT 0,
-        UNIQUE KEY `identifier` (`identifier`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    ]])
+            `petid` int(11) NOT NULL AUTO_INCREMENT,
+            `identifier` varchar(40) NOT NULL,
+            `charidentifier` int(11) NOT NULL DEFAULT 0,
+            `dog` varchar(255) NOT NULL,
+            `skin` int(11) NOT NULL DEFAULT 0,
+            `xp` int(11) NOT NULL DEFAULT 0,
+            `transfered` int(11) NOT NULL DEFAULT 0,
+            `called` int(11) NOT NULL DEFAULT 0,
+            KEY `petid` (`petid`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+        ]])
     if not result then
         print("ERROR: Failed to create AFK WL Table")
     end
 end)
 
-RegisterServerEvent('bcc:sellpet', function()
+RegisterServerEvent('bcc-pets:sellpet', function(petid, SellPrice)
     local _source = source
-    local User = VORPcore.getUser(_source)
+    local User = VorpCore.getUser(_source)
     local Character = User.getUsedCharacter
-    local playerid = Character.identifier
     local u_charid = Character.charIdentifier
-    MySQL.query("DELETE FROM pets WHERE identifier = @identifier AND charidentifier = @charidentifier", {["identifier"] = playerid, ['charidentifier'] = u_charid})
-    TriggerClientEvent('bcc:removedog', _source)
+    Character.addCurrency(0, SellPrice)
+    MySQL.query("DELETE FROM pets WHERE charidentifier = @charidentifier AND petid = @petid", {['charidentifier'] = u_charid, ["petid"] = petid})
+    TriggerClientEvent('bcc-pets:removedog', _source, petid)
+    VorpCore.NotifyRightTip(_source, _U("SoldPet")..SellPrice, 5000)
+    TriggerEvent('vorp:log', 'petlogs', "Player has sold their pet", "**"..Character.firstname.." "..Character.lastname.."** (ID: **".._source.."**) has sold Pet ID: **"..petid.."** for **$"..SellPrice.."**.")
 end)
 
-function dump(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dump(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
-end
-
-RegisterServerEvent('bcc:buydog', function (args)
+RegisterServerEvent('bcc-pets:buydog', function (args, ShopID)
     local _source   = source
-    local User = VORPcore.getUser(_source)
+    local User = VorpCore.getUser(_source)
     local Character = User.getUsedCharacter
     local _price = args['Price']
     local _model = args['Model']
@@ -53,141 +47,121 @@ RegisterServerEvent('bcc:buydog', function (args)
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
     local u_money = Character.money
-    if not Config.JobLock then
-        if u_money <= _price then
-            TriggerClientEvent("vorp:TipRight", _source, _U("NoMoney"), 4000)
-            return
-        end
-
-        MySQL.query( "SELECT * FROM pets WHERE identifier = @identifier AND charidentifier = @charidentifier", {['identifier'] = u_identifier, ['charidentifier'] = u_charid}, function(result)
-            if #result > 0 then
-                local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid,  ['dog'] = _model, ['skin'] = skin }
-                MySQL.query(" UPDATE pets SET dog = @dog, skin = @skin WHERE identifier = @identifier AND charidentifier = @charidentifier", Parameters, function(r1)
-                    Character.removeCurrency(0, _price)
-                    TriggerClientEvent('bcc:spawndog', _source, _model, skin, true)
-                    TriggerClientEvent("vorp:TipRight", _source, _U("ReplacePet"), 4000)
-                end)
+    if u_money <= _price then
+        VorpCore.NotifyRightTip(_source, _U("NoMoney"), 5000)
+        return
+    end
+    local result = MySQL.query.await( "SELECT * FROM pets WHERE identifier = @identifier AND charidentifier = @charidentifier", {['identifier'] = u_identifier, ['charidentifier'] = u_charid})
+    if #result <= Config.MaxPets then
+        local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid,  ['dog'] = _model, ['skin'] = skin, ['called'] = 1}
+        local BuyPet = MySQL.insert.await("INSERT INTO pets ( `identifier`,`charidentifier`,`dog`,`skin`,`called` ) VALUES ( @identifier,@charidentifier, @dog, @skin, @called )", Parameters)
+            if BuyPet then
+                Character.removeCurrency(0, _price)
+                TriggerClientEvent('bcc-pets:spawndog', _source, _model, skin, true, BuyPet, ShopID)
+                VorpCore.NotifyRightTip(_source, _U("NewPet"), 5000)
+                TriggerEvent('vorp:log', 'petlogs', "Player has bought a pet", "**"..Character.firstname.." "..Character.lastname.." (**ID: **".._source.."**) has bought a "..Config.Pets[_model][1].Text.." for **$".._price.."**")
             else
-                local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid,  ['dog'] = _model, ['skin'] = skin}
-                MySQL.query("INSERT INTO pets ( `identifier`,`charidentifier`,`dog`,`skin` ) VALUES ( @identifier,@charidentifier, @dog, @skin )", Parameters, function(r2)
-                    Character.removeCurrency(0, _price)
-                    TriggerClientEvent('bcc:spawndog', _source, _model, skin, true)
-                    TriggerClientEvent("vorp:TipRight", _source, _U("NewPet"), 4000)
-                end)
+                VorpCore.NotifyRightTip(_source, _U("IssueBuying"), 5000)
             end
-        end)
     else
-        for _,v in pairs(Config.JobLock) do
-            if Character.job == v then
-                authorized = true
-            end
-        end
-        Wait(10)
-        if authorized then
-            authorized = false
-            if u_money <= _price then
-                TriggerClientEvent("vorp:TipRight", _source, _U("NoMoney"), 4000)
-                return
-            end
-            MySQL.query( "SELECT * FROM pets WHERE identifier = @identifier AND charidentifier = @charidentifier", {['identifier'] = u_identifier, ['charidentifier'] = u_charid}, function(result)
-                if #result > 0 then
-                    local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid,  ['dog'] = _model, ['skin'] = skin }
-                    MySQL.query(" UPDATE pets SET dog = @dog, skin = @skin WHERE identifier = @identifier AND charidentifier = @charidentifier", Parameters, function(r1)
-                        Character.removeCurrency(0, _price)
-                        TriggerClientEvent('bcc:spawndog', _source, _model, skin, true)
-                        TriggerClientEvent("vorp:TipRight", _source, _U("ReplacePet"), 4000)
-                    end)
-                else
-                    local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid,  ['dog'] = _model, ['skin'] = skin}
-                    MySQL.query("INSERT INTO pets ( `identifier`,`charidentifier`,`dog`,`skin` ) VALUES ( @identifier,@charidentifier, @dog, @skin )", Parameters, function(r2)
-                        Character.removeCurrency(0, _price)
-                        TriggerClientEvent('bcc:spawndog', _source, _model, skin, true)
-                        TriggerClientEvent("vorp:TipRight", _source, _U("NewPet"), 4000)
-                    end)
-                end
-            end)
-        else
-            TriggerClientEvent("vorp:TipRight", _source, _U("NotAuthorized"), 4000)
-        end
+        VorpCore.NotifyRightTip(_source, _U("YouAlreadyHaveAPet"), 5000)
     end
 end)
 
-RegisterNetEvent('bcc-pets:getpets', function()
-    local _source = source
-    local User = VORPcore.getUser(_source)
-    local Character = User.getUsedCharacter
-    local identifier = Character.identifier
-    local charidentifier = Character.charIdentifier
-    local Parameters = {
-        ['identifier'] = identifier,
-        ['charidentifier'] = charidentifier
-    }
-    local result = MySQL.query.await("SELECT * FROM pets WHERE identifier = @identifier  AND charidentifier = @charidentifier", Parameters)
-    if result then
-        for i = 1, #result do
-            local row = result[i]
-            TriggerClientEvent('bcc-pets:getpetsreturn', _source, row)
-        end
-    else
-        TriggerClientEvent("vorp:TipRight", _source, _U("NoPet"), 4000)
-    end
-end)
-
-RegisterNetEvent('bcc-pets:transferownership', function(newownerid)
+RegisterServerEvent('bcc-pets:transferownership', function(newownerid, petid)
     -- Trading Player
     local _source = source
-    local User = VORPcore.getUser(_source)
+    local User = VorpCore.getUser(_source)
     local Character = User.getUsedCharacter
     local u_identifier = Character.identifier
     local u_charid = Character.charIdentifier
-    -- Recieving Player
-    local UserNew = VORPcore.getUser(newownerid)
-    if not UserNew then
-        TriggerClientEvent("vorp:TipRight", _source, _U("NotValidOwner"), 4000)
-        return
-    end
-    local CharacterNew = UserNew.getUsedCharacter
-    local New_identifier = CharacterNew.identifier
-    local New_charid = CharacterNew.charIdentifier
-
     -- Check if player owns Pet already
+    local Parameters1 = {
+        ['identifier'] = u_identifier,
+        ['charidentifier'] = u_charid
+    }
+    local result = MySQL.query.await("SELECT * FROM pets WHERE identifier = @identifier  AND charidentifier = @charidentifier", Parameters1)
+       if result then
+        if #result <= Config.MaxPets then
+            TriggerClientEvent('bcc-pets:removedog', _source, petid)
+            -- Recieving Player
+            local UserNew = VorpCore.getUser(newownerid)
+            local CharacterNew = UserNew.getUsedCharacter
+            local New_identifier = CharacterNew.identifier
+            local New_charid = CharacterNew.charIdentifier
+            local TransferPet = MySQL.update.await("UPDATE pets SET identifier = ?, charidentifier = ?, transfered = ? WHERE petid = ?", {New_identifier, New_charid, 1, petid})
+            if TransferPet then
+                TriggerEvent('vorp:log', 'petlogs', "Player has transfered a pet", "**"..Character.firstname.." "..Character.lastname.." (**ID: **".._source.."**) has transfered Pet ID: **"..petid.."** to **"..CharacterNew.firstname.." "..CharacterNew.lastname.."** (ID: **"..newownerid.."**")
+                VorpCore.NotifyRightTip(_source, _U("TransferedOwnership"), 5000)
+                VorpCore.NotifyRightTip(newownerid, _U("TransferedOwnershipRecieve"), 5000)
+            else
+                VorpCore.NotifyRightTip(_source, _U("IssueTransferring"), 5000)
+                VorpCore.NotifyRightTip(newownerid, _U("IssueTransferring"), 5000)
+            end
+        else
+            VorpCore.NotifyRightTip(_source, _U("AlreadyHasPet"), 5000)
+            VorpCore.NotifyRightTip(newownerid, _U("YouAlreadyHaveAPet"), 5000)
+        end
+    else
+        VorpCore.NotifyRightTip(_source, _U("IssueTransferring"), 5000)
+        VorpCore.NotifyRightTip(newownerid, _U("IssueTransferring"), 5000)
+    end
+end)
+
+RegisterServerEvent('bcc-pets:callpet', function(petid)
+    local _source   = source
+    local User = VorpCore.getUser(_source)
+    local Character = User.getUsedCharacter
+    local u_identifier = Character.identifier
+    local u_charid = Character.charIdentifier
+    local Parameters1 = {
+        ['identifier'] = u_identifier,
+        ['charidentifier'] = u_charid,
+        ['petid'] = petid
+    }
+    local result = MySQL.query.await("SELECT * FROM pets WHERE identifier = @identifier AND charidentifier = @charidentifier AND petid = @petid", Parameters1)
+    if result then
+        MySQL.update('UPDATE pets SET called = ? WHERE petid = ?', {1, petid}, function(UpdateOutStatus)
+            if UpdateOutStatus then
+                local dog = result[1].dog
+                local skin = result[1].skin
+                TriggerClientEvent("bcc-pets:spawndog", _source, dog, skin, false, petid)
+                VorpCore.NotifyRightTip(_source,_U("CalledPet")..Config.Pets[dog][1].Text, 5000)
+            end
+        end)
+    else
+        VorpCore.NotifyRightTip(_source,_U("NoPet"), 5000)
+    end
+end)
+
+RegisterServerEvent('bcc-pets:server:putawaypet', function(petid)
+    local _source = source
+    local UpdateOutStatus = MySQL.update.await('UPDATE pets SET called = ? WHERE petid = ?', {0, petid})
+    if UpdateOutStatus then
+        VorpCore.NotifyRightTip(_source,_U("PetAway"), 5000)
+    end
+end)
+
+VorpCore.addRpcCallback("GetPlayersPets", function(source, cb)
+    local _source = source
+    local User = VorpCore.getUser(_source)
+    local Character = User.getUsedCharacter
+    local u_identifier = Character.identifier
+    local u_charid = Character.charIdentifier
     local Parameters1 = {
         ['identifier'] = u_identifier,
         ['charidentifier'] = u_charid,
     }
-    local result = MySQL.query.await("SELECT * FROM pets WHERE identifier = @identifier  AND charidentifier = @charidentifier", Parameters1)
-    if not result then
-        TriggerClientEvent('bcc:removedog', _source)
-        local Parameters = {
-            ['identifier'] = u_identifier,
-            ['charidentifier'] = u_charid,
-            ['identifierNEW'] = New_identifier,
-            ['charidentifierNEW'] = New_charid,
-        }
-        MySQL.query(" UPDATE pets SET identifier = @identifierNEW AND charidentifier = @charidentifierNEW WHERE identifier = @identifier AND charidentifier = @charidentifier", Parameters, function()
-            TriggerClientEvent("vorp:TipRight", _source, _U("TransferedOwnership"), 4000)
-            TriggerClientEvent("vorp:TipRight", newownerid, _U("TransferedOwnershipRecieve"), 4000)
-        end)
+    local result = MySQL.query.await('SELECT * FROM pets WHERE identifier = @identifier AND charidentifier = @charidentifier', Parameters1)
+    if result then
+        cb(result)
     else
-        TriggerClientEvent("vorp:TipRight", _source, _U("AlreadyHasPet"), 4000)
-        TriggerClientEvent("vorp:TipRight", newownerid, _U("YouAlreadyHaveAPet"), 4000)
+        cb(false)
     end
 end)
 
-RegisterServerEvent('bcc:loaddog', function ()
-    local _source   = source
-    local User = VORPcore.getUser(_source)
-    local Character = User.getUsedCharacter
-    local u_identifier = Character.identifier
-    local u_charid = Character.charIdentifier
-    local Parameters = { ['identifier'] = u_identifier, ['charidentifier'] = u_charid }
-        MySQL.query( "SELECT * FROM pets WHERE identifier = @identifier  AND charidentifier = @charidentifier", Parameters, function(result)
-        if result[1] then
-            local dog = result[1].dog
-            local skin = result[1].skin
-            TriggerClientEvent("bcc:spawndog", _source, dog, skin, false)
-        else
-            TriggerClientEvent("vorp:TipRight", _source, _U("NoPet"), 4000)
-        end
+if Config.PetMenu.active then
+    RegisterCommand(Config.PetMenu.command, function(source)
+        TriggerClientEvent('bcc-pets:openpetmenu', source)
     end)
-end)
+end
