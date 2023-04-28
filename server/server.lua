@@ -34,7 +34,6 @@ RegisterServerEvent('bcc-pets:sellpet', function(petid, SellPrice)
     MySQL.query("DELETE FROM pets WHERE charidentifier = @charidentifier AND petid = @petid", {['charidentifier'] = u_charid, ["petid"] = petid})
     TriggerClientEvent('bcc-pets:removedog', _source, petid)
     VorpCore.NotifyRightTip(_source, _U("SoldPet")..SellPrice, 5000)
-    TriggerEvent('vorp:log', 'petlogs', "Player has sold their pet", "**"..Character.firstname.." "..Character.lastname.."** (ID: **".._source.."**) has sold Pet ID: **"..petid.."** for **$"..SellPrice.."**.")
 end)
 
 RegisterServerEvent('bcc-pets:buydog', function (args, ShopID)
@@ -59,7 +58,6 @@ RegisterServerEvent('bcc-pets:buydog', function (args, ShopID)
                 Character.removeCurrency(0, _price)
                 TriggerClientEvent('bcc-pets:spawndog', _source, _model, skin, true, BuyPet, ShopID)
                 VorpCore.NotifyRightTip(_source, _U("NewPet"), 5000)
-                TriggerEvent('vorp:log', 'petlogs', "Player has bought a pet", "**"..Character.firstname.." "..Character.lastname.." (**ID: **".._source.."**) has bought a "..Config.Pets[_model][1].Text.." for **$".._price.."**")
             else
                 VorpCore.NotifyRightTip(_source, _U("IssueBuying"), 5000)
             end
@@ -91,7 +89,6 @@ RegisterServerEvent('bcc-pets:transferownership', function(newownerid, petid)
             local New_charid = CharacterNew.charIdentifier
             local TransferPet = MySQL.update.await("UPDATE pets SET identifier = ?, charidentifier = ?, transfered = ? WHERE petid = ?", {New_identifier, New_charid, 1, petid})
             if TransferPet then
-                TriggerEvent('vorp:log', 'petlogs', "Player has transfered a pet", "**"..Character.firstname.." "..Character.lastname.." (**ID: **".._source.."**) has transfered Pet ID: **"..petid.."** to **"..CharacterNew.firstname.." "..CharacterNew.lastname.."** (ID: **"..newownerid.."**")
                 VorpCore.NotifyRightTip(_source, _U("TransferedOwnership"), 5000)
                 VorpCore.NotifyRightTip(newownerid, _U("TransferedOwnershipRecieve"), 5000)
             else
