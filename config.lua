@@ -19,7 +19,7 @@ Config.PetMenu = {
 
 Config.PetAttributes = {
     FollowDistance = 5,
-    invincible = true,
+    Invincible = true,
 }
 
 Config.SellPercentage = 30                  -- % of the pet price the player recieves for selling back to Shops
