@@ -15,8 +15,7 @@ Join the [VORP Community Discord](https://discord.gg/23MPbQ6)
 2. Extract and place `bcc-pets` into your `resources` folder
 3. Add `ensure bcc-pets` to your `server.cfg` file
 4. Restart your server (unless you have nightly restarts)
-5. Make sure you you add pets.sql to your database
-
+   
 ## How-to-configure
 All configurations available in `config.lua`
 
