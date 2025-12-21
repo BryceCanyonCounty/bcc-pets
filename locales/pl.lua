@@ -1,0 +1,20 @@
+Locales['pl'] = {
+    NoMoney = 'Nie masz wystarczającej ilości pieniędzy',
+    PetAway = 'Odesłałeś swojego zwierzaka do domu...',
+    PutAwayPet = 'Odeślij zwierzaka do domu',
+    CallPet = 'Przywołaj swojego zwierzaka',
+    PetHealed = 'Zwierzak został uleczony przez lekarza!',
+    TransferOwnership = 'Przekaż własność',
+    TransferedOwnership = 'Przekazałeś własność swojego zwierzaka!',
+    TransferedOwnershipRecieve = "Jesteś nowym właścicielem zwierzaka!",
+    NewPet = 'Kupiłeś nowego zwierzaka!',
+    NoPet = 'Nie posiadasz zwierzaka...',
+    YouAlreadyHaveAPet = 'Posiadasz już maksymalną liczbę zwierzaków...',
+    AlreadyHasPet = 'Ta osoba posiada już maksymalną liczbę zwierzaków...',
+    CalledPet = "Przywołałeś swojego ",
+    PetNotOut = "Ten zwierzak nie jest obecnie przywołany...",
+    IncorrectID = "Wymagane jest ID gracza...",
+    IssueTransferring = "Wystąpił problem podczas przekazywania zwierzaka...",
+    IssueBuying = "Wystąpił problem podczas zakupu zwierzaka...",
+    SoldPet = "Sprzedałeś swojego zwierzaka za $"
+}
